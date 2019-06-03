@@ -1,6 +1,6 @@
 // Merlin is a post-exploitation command and control framework.
 // This file is part of Merlin.
-// Copyright (C) 2018  Russel Van Tuyl
+// Copyright (C) 2019  Russel Van Tuyl
 
 // Merlin is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
 
 package banner
 
-// Banner1 is the first banner image for Merlin
-const Banner1 string = `
+// MerlinBanner1 is the first banner image for Merlin
+const MerlinBanner1 string = `
                                &&&&&&&&
                              &&&&&&&&&&&&
                             &&&&&&&&&&&&&&&

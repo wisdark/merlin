@@ -1,6 +1,6 @@
 // Merlin is a post-exploitation command and control framework.
 // This file is part of Merlin.
-// Copyright (C) 2018  Russel Van Tuyl
+// Copyright (C) 2019  Russel Van Tuyl
 
 // Merlin is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,31 +20,32 @@ package main
 import (
 	// Standard
 	"flag"
+	"os"
 	"path/filepath"
-	"strconv"
 
 	// 3rd Party
 	"github.com/fatih/color"
 
 	// Merlin
-	"github.com/Ne0nd0g/merlin/pkg/banner"
-	"github.com/Ne0nd0g/merlin/pkg/servers/http2"
-	"github.com/Ne0nd0g/merlin/pkg/logging"
-	"github.com/Ne0nd0g/merlin/pkg/core"
-	"github.com/Ne0nd0g/merlin/pkg/cli"
 	"github.com/Ne0nd0g/merlin/pkg"
+	"github.com/Ne0nd0g/merlin/pkg/banner"
+	"github.com/Ne0nd0g/merlin/pkg/cli"
+	"github.com/Ne0nd0g/merlin/pkg/core"
+	"github.com/Ne0nd0g/merlin/pkg/logging"
+	"github.com/Ne0nd0g/merlin/pkg/servers/http2"
 )
 
 // Global Variables
 var build = "nonRelease"
 
 func main() {
-	logging.Server("Starting Merlin Server")
+	logging.Server("Starting Merlin Server version " + merlin.Version + " build " + merlin.Build)
 
 	flag.BoolVar(&core.Verbose, "v", false, "Enable verbose output")
 	flag.BoolVar(&core.Debug, "debug", false, "Enable debug output")
 	port := flag.Int("p", 443, "Merlin Server Port")
-	ip := flag.String("i", "0.0.0.0", "The IP address of the interface to bind to")
+	ip := flag.String("i", "127.0.0.1", "The IP address of the interface to bind to")
+	proto := flag.String("proto", "h2", "Protocol for the agent to connect with [h2, hq]")
 	crt := flag.String("x509cert", filepath.Join(string(core.CurrentDir), "data", "x509", "server.crt"),
 		"The x509 certificate for the HTTPS listener")
 	key := flag.String("x509key", filepath.Join(string(core.CurrentDir), "data", "x509", "server.key"),
@@ -53,17 +54,30 @@ func main() {
 		color.Blue("#################################################")
 		color.Blue("#\t\tMERLIN SERVER\t\t\t#")
 		color.Blue("#################################################")
-		color.Blue("Version: " + merlin.Version + " Build: " + build)
+		color.Blue("Version: " + merlin.Version)
+		color.Blue("Build: " + build)
 		flag.PrintDefaults()
+		os.Exit(0)
 	}
 	flag.Parse()
 
-	color.Blue(banner.Banner1)
+	color.Blue(banner.MerlinBanner1)
 	color.Blue("\t\t   Version: %s", merlin.Version)
 	color.Blue("\t\t   Build: %s", build)
 
-	go http2.StartListener(strconv.Itoa(*port), *ip, *crt, *key, "/")
-	cli.Shell()
+	// Start Merlin Command Line Interface
+	go cli.Shell()
+
+	// Start Merlin Server to listen for agents
+	server, err := http2.New(*ip, *port, *proto, *key, *crt)
+	if err != nil {
+		color.Red(err.Error())
+	} else {
+		err := server.Run()
+		if err != nil {
+			color.Red("[!]There was an error starting the server")
+		}
+	}
 }
 
 // TODO Add session ID

@@ -1,6 +1,6 @@
 // Merlin is a post-exploitation command and control framework.
 // This file is part of Merlin.
-// Copyright (C) 2018  Russel Van Tuyl
+// Copyright (C) 2019  Russel Van Tuyl
 
 // Merlin is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -32,10 +32,10 @@ type Base struct {
 
 // FileTransfer is the JSON payload to transfer files between the server and agent
 type FileTransfer struct {
-	FileLocation    string `json:"dest"`
-	FileBlob 		string `json:"blob"`
-	IsDownload		bool `json:download`
-	Job      		string `json:"job"`
+	FileLocation string `json:"dest"`
+	FileBlob     string `json:"blob"`
+	IsDownload   bool   `json:"download"`
+	Job          string `json:"job"`
 }
 
 // CmdPayload is the JSON payload for commands to execute on an agent
@@ -74,11 +74,38 @@ type AgentControl struct {
 
 // AgentInfo is a JSON payload containing information about the agent and its configuration
 type AgentInfo struct {
-	Version       string `json:"version,omitempty"`
-	Build         string `json:"build,omitempty"`
-	WaitTime      string `json:"waittime,omitempty"`
-	PaddingMax    int    `json:"paddingmax,omitempty"`
-	MaxRetry      int    `json:"maxretry,omitempty"`
-	FailedCheckin int    `json:"failedcheckin,omitempty"`
-	Skew		  int64	 `json:"skew,omitempty"`
+	Version       string      `json:"version,omitempty"`
+	Build         string      `json:"build,omitempty"`
+	WaitTime      string      `json:"waittime,omitempty"`
+	PaddingMax    int         `json:"paddingmax,omitempty"`
+	MaxRetry      int         `json:"maxretry,omitempty"`
+	FailedCheckin int         `json:"failedcheckin,omitempty"`
+	Skew          int64       `json:"skew,omitempty"`
+	Proto         string      `json:"proto,omitempty"`
+	SysInfo       interface{} `json:"sysinfo,omitempty"`
+	KillDate      int64       `json:"killdate,omitempty"`
+}
+
+// Shellcode is a JSON payload containing shellcode and the method for execution
+type Shellcode struct {
+	Method string `json:"method"`
+	Bytes  string `json:"bytes"` // Base64 string of shellcode bytes
+	Job    string `json:"job"`
+	PID    uint32 `json:"pid,omitempty"` // Process ID for remote injection
+}
+
+// Module is a JSON payload used to send module directives.
+type Module struct {
+	Job     string   `json:"job"`
+	Command string   `json:"command"`
+	Args    []string `json:"args,omitempty"`
+	Result  string   `json:"result"`
+}
+
+// NativeCmd is a JSON payload to execute commands native inside of Merlin using go instead of executing the binary
+// program on the host (i.e. ls)
+type NativeCmd struct {
+	Job     string `json:"job"`
+	Command string `json:"command"`
+	Args    string `json:"args,omitempty"`
 }
