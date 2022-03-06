@@ -1,6 +1,6 @@
 // Merlin is a post-exploitation command and control framework.
 // This file is part of Merlin.
-// Copyright (C) 2021  Russel Van Tuyl
+// Copyright (C) 2022  Russel Van Tuyl
 
 // Merlin is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ import (
 	moduleAPI "github.com/Ne0nd0g/merlin/pkg/api/modules"
 	"github.com/Ne0nd0g/merlin/pkg/cli/banner"
 	"github.com/Ne0nd0g/merlin/pkg/cli/core"
+	serverCore "github.com/Ne0nd0g/merlin/pkg/core"
 )
 
 // handlerMain contains the logic to handle the "main" menu commands
@@ -164,6 +165,7 @@ func handlerMain(cmd []string) {
 			case "verbose":
 				if strings.ToLower(cmd[2]) == "true" {
 					core.Verbose = true
+					serverCore.Verbose = true
 					core.MessageChannel <- messages.UserMessage{
 						Level:   messages.Success,
 						Message: "Verbose output enabled",
@@ -182,6 +184,7 @@ func handlerMain(cmd []string) {
 			case "debug":
 				if strings.ToLower(cmd[2]) == "true" {
 					core.Debug = true
+					serverCore.Debug = true
 					core.MessageChannel <- messages.UserMessage{
 						Level:   messages.Success,
 						Message: "Debug output enabled",
@@ -210,11 +213,19 @@ func handlerMain(cmd []string) {
 		}
 	case "":
 	default:
-		if len(cmd) > 1 {
-			core.ExecuteCommand(cmd[0], cmd[1:])
+		if cmd[0][0:1] == "!" {
+			if len(cmd) > 1 {
+				core.ExecuteCommand(cmd[0][1:], cmd[1:])
+			} else {
+				core.ExecuteCommand(cmd[0][1:], nil)
+			}
 		} else {
-			var x []string
-			core.ExecuteCommand(cmd[0], x)
+			core.MessageChannel <- messages.UserMessage{
+				Level:   messages.Warn,
+				Message: fmt.Sprintf("unrecognized command: %s", cmd[0]),
+				Time:    time.Now().UTC(),
+				Error:   true,
+			}
 		}
 	}
 }
@@ -331,7 +342,7 @@ func helpMain() {
 		{"sessions", "Display a table of information about all checked-in agent sessions", ""},
 		{"use", "Use a Merlin module", "module <module path>"},
 		{"version", "Print the Merlin server version", ""},
-		{"*", "Anything else will be execute on the host operating system", ""},
+		{"!", "Execute a command on the host operating system", "!<command> <args>"},
 	}
 
 	table.AppendBulk(data)

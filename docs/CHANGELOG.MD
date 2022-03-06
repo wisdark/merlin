@@ -4,6 +4,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 1.3 - 2022-02-17
+
+### Changed
+
+- Added the `Integrity` field to the agents.Agent and messages.SysInfo structures
+- The agent menu `info` command now shows the agent's integrity level
+  - Windows: `2`-Medium, `3`-High, `4`-System
+  - All other OS: `3` - member of sudo group, `4` - running as root
+- Dockerfile now uses [merlin-base](https://hub.docker.com/r/ne0nd0g/merlin-base) image
+
+## 1.2.1 - 2022-01-10
+
+### Fixed
+
+- [merlin-agent/Issue 6](https://github.com/Ne0nd0g/merlin-agent/issues/6) - Message padding is now a random length instead of a fixed length
+
+## 1.2.0 - 2021-12-12
+
+### Added
+
+- `rm` command to remove, or delete, files using native Go functions
+- `runas` Windows command to create a process as another user with their password
+- `ssh` Connect to a remote host over SSH and execute a command (non-interactive)
+- `token` Windows command to interact with Windows Access Tokens
+  - `make` Create a new token with a username and password; Unlisted `make_token` alias
+  - `privs` List the current or remote process token privileges
+  - `rev2self` Drop any created or stolen access token and revert to original configuration; Unlisted `rev2self` alias
+  - `steal` Steal a token from another process; Unlisted `steal_token` alias
+  - `whoami` Enumerate process and thread token username, logon ID, privilege count, token type, impersonation level, and integrity level
+- New Agent API calls: `RM`, `RunAs`, `Token`
+
+### Changed
+
+- Previously all unknown commands were executed on the host operating system; We must now prefix commands with `!`  (e.g., `!whoami`)
+- Updated [go-quic](https://github.com/lucas-clemente/quic-go/) library to v0.24.0
+
+### Fixed
+
+* [issue 116](https://github.com/Ne0nd0g/merlin/issues/116) - Fixed missing statement to enable verbose & debug output for the server component
+* [issue 119](https://github.com/Ne0nd0g/merlin/issues/116) - Add specific agent ID instead of broadcast "F" agent ID
+
 ## 1.1.0 - 2021-08-5
 
 ### Added

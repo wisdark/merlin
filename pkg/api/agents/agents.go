@@ -1,6 +1,6 @@
 // Merlin is a post-exploitation command and control framework.
 // This file is part of Merlin.
-// Copyright (C) 2021  Russel Van Tuyl
+// Copyright (C) 2022  Russel Van Tuyl
 
 // Merlin is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -408,6 +408,7 @@ func GetAgentInfo(agentID uuid.UUID) ([][]string, messages.UserMessage) {
 		{"Platform", fmt.Sprintf("%s/%s", a.Platform, a.Architecture)},
 		{"User Name", a.UserName},
 		{"User GUID", a.UserGUID},
+		{"Integrity Level", fmt.Sprintf("%d", a.Integrity)},
 		{"Hostname", a.HostName},
 		{"Process Name", a.Process},
 		{"Process ID", strconv.Itoa(a.Pid)},
@@ -439,7 +440,7 @@ func GetAgentStatus(agentID uuid.UUID) (string, messages.UserMessage) {
 		return status, messages.ErrorMessage(fmt.Sprintf("%s is not a valid agent", agentID))
 	}
 	dur, errDur := time.ParseDuration(agent.WaitTime)
-	if errDur != nil {
+	if errDur != nil && agent.WaitTime != "" {
 		return status, messages.ErrorMessage(fmt.Sprintf("Error converting %s to a time duration: %s", agent.WaitTime, errDur))
 	}
 	if agent.StatusCheckIn.Add(dur).After(time.Now()) {
@@ -781,6 +782,30 @@ func Remove(agentID uuid.UUID) messages.UserMessage {
 	return messages.ErrorMessage(err.Error())
 }
 
+// RM removes, or deletes, a file
+func RM(agentID uuid.UUID, Args []string) messages.UserMessage {
+	if len(Args) < 2 {
+		return messages.ErrorMessage("not enough arguments: rm <filepath>")
+	}
+	job, err := jobs.Add(agentID, Args[0], Args[1:2])
+	if err != nil {
+		return messages.ErrorMessage(err.Error())
+	}
+	return messages.JobMessage(agentID, job)
+}
+
+// RunAs creates a new process as the provided user
+func RunAs(agentID uuid.UUID, Args []string) messages.UserMessage {
+	if len(Args) < 4 {
+		return messages.ErrorMessage("not enough arguments: runas <username> <password> <application> [<args>]")
+	}
+	job, err := jobs.Add(agentID, Args[0], Args[1:])
+	if err != nil {
+		return messages.ErrorMessage(err.Error())
+	}
+	return messages.JobMessage(agentID, job)
+}
+
 // SecureDelete securely deletes supplied file
 func SecureDelete(agentID uuid.UUID, Args []string) messages.UserMessage {
 	if len(Args) < 2 {
@@ -879,6 +904,45 @@ func Sleep(agentID uuid.UUID, Args []string) messages.UserMessage {
 		return messages.JobMessage(agentID, job)
 	}
 	return messages.ErrorMessage(fmt.Sprintf("Not enough arguments provided for the Agent SetSleep call: %s", Args))
+}
+
+// SSH executes a command on a remote host through the SSH protocol and returns the output
+func SSH(agentID uuid.UUID, Args []string) messages.UserMessage {
+	if len(Args) < 5 {
+		return messages.ErrorMessage("not enough arguments: ssh <username> <password> <host:port> <application> [<args>]")
+	}
+	job, err := jobs.Add(agentID, Args[0], Args[1:])
+	if err != nil {
+		return messages.ErrorMessage(err.Error())
+	}
+	return messages.JobMessage(agentID, job)
+}
+
+// Token is used to interact with Windows Access Tokens on the agent
+func Token(agentID uuid.UUID, Args []string) messages.UserMessage {
+	if len(Args) < 0 {
+		return messages.ErrorMessage("not enough arguments, a token module command must be provided")
+	}
+	switch Args[0] {
+	// token commands that do REQUIRE an argument
+	case "make":
+		if len(Args) < 4 {
+			return messages.ErrorMessage("not enough arguments\ntoken make <DOMAIN\\user> <password>")
+		}
+	case "steal":
+		if len(Args) < 3 {
+			return messages.ErrorMessage("not enough arguments\ntoken steal <pid>")
+		}
+		_, err := strconv.Atoi(Args[2])
+		if err != nil {
+			return messages.ErrorMessage(fmt.Sprintf("there was an error converting the pid \"%s\" to an integer:%s", Args[2], err))
+		}
+	}
+	job, err := jobs.Add(agentID, Args[0], Args[1:])
+	if err != nil {
+		return messages.ErrorMessage(err.Error())
+	}
+	return messages.JobMessage(agentID, job)
 }
 
 // Touch matches the destination file's timestamps with source file

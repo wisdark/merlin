@@ -1,6 +1,6 @@
 // Merlin is a post-exploitation command and control framework.
 // This file is part of Merlin.
-// Copyright (C) 2021  Russel Van Tuyl
+// Copyright (C) 2022  Russel Van Tuyl
 
 // Merlin is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -74,6 +74,7 @@ type SysInfo struct {
 	Architecture string   `json:"architecture,omitempty"`
 	UserName     string   `json:"username,omitempty"`
 	UserGUID     string   `json:"userguid,omitempty"`
+	Integrity    int      `json:"integrity,omitempty"`
 	HostName     string   `json:"hostname,omitempty"`
 	Process      string   `json:"process,omitempty"`
 	Pid          int      `json:"pid,omitempty"`
