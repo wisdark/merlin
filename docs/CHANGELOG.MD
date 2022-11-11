@@ -4,6 +4,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+# 1.5.0 - 2022-07-20
+
+### Added
+
+- Added new SOCKS5 functionality
+  - Use `socks start 9050` from the agent menu to start a SOCKS5 listener on port 9050 on the Merlin server
+
+### Changed
+
+- Go v1.18 is now the minimum supported version
+- Upgraded [quic-go](https://github.com/lucas-clemente/quic-go/) to v0.28.0
+- Upgraded [Go JOSE](https://github.com/square/go-jose) to v2.6.0
+- Reduced the default PBES2 count for payload JWE encryption from 500,000 to 3,000
+  - https://datatracker.ietf.org/doc/html/rfc7518#section-4.8.1.2
+
+# 1.4.3 - 2022-07-09
+
+### Fixed
+
+- [Issue 129](https://github.com/Ne0nd0g/merlin/issues/129) - Added references to Docker image source
+
+# 1.4.2 - 2022-04-14
+
+### Added
+
+- Server shows error when BOTH the agent and the server were not obfuscated with the SAME seed
+  - [merlin-agent/15](https://github.com/Ne0nd0g/merlin-agent/issues/15)
+
+# 1.4.1 - 2022-04-12
+
+### Fixed
+
+- [Issue 126](https://github.com/Ne0nd0g/merlin/issues/126) - Upgraded [quic-go](https://github.com/lucas-clemente/quic-go/) to v0.27.0 for Go 1.18 support
+
+# 1.4.0 - 2022-04-02
+
+### Added
+
+- Added new `memory` command w/ associated API & documentation to read/write virtual memory for Windows agents
+  - The `read` command will just read the specified number of bytes and return the results
+  - The `write` command will just write the specified bytes without reading them first
+  - The `patch` command will find a specified function, read the existing bytes, and then overwrite it with the provided bytes
+
+# 1.3.1 - 2022-03-22
+
+### Added
+
+- Added [Garble](https://github.com/burrowers/garble) builds to the Make file
+  - `windows-garble`, `linux-garble`, & `darwin-garble`
+  - **THE AGENT MUST BE GARBLED WITH THE EXACT SAME SEED**
+  - Specify the seed at build with `make linux-garble SEED=<your seed valuee>`
+
+### Fixed
+
+- Instructing an agent to exit removes it from the server and CLI
+
 ## 1.3 - 2022-02-17
 
 ### Changed

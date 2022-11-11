@@ -144,6 +144,8 @@ func handlerAgent(cmd []string) {
 		core.MessageChannel <- agentAPI.Token(agent, c)
 	case "maxretry":
 		core.MessageChannel <- agentAPI.MaxRetry(agent, cmd)
+	case "memory":
+		core.MessageChannel <- agentAPI.Memory(agent, cmd)
 	case "memfd":
 		core.MessageChannel <- agentAPI.MEMFD(agent, cmd)
 	case "netstat":
@@ -183,17 +185,21 @@ func handlerAgent(cmd []string) {
 		core.MessageChannel <- agentAPI.CMD(agent, cmd)
 	case "runas":
 		core.MessageChannel <- agentAPI.RunAs(agent, cmd)
+	case "sdelete":
+		core.MessageChannel <- agentAPI.SecureDelete(agent, cmd)
 	case "sessions":
 		header, rows := agentAPI.GetAgentsRows()
 		core.DisplayTable(header, rows)
 	case "sharpgen":
 		go func() { core.MessageChannel <- agentAPI.SharpGen(agent, cmd) }()
-	case "sdelete":
-		core.MessageChannel <- agentAPI.SecureDelete(agent, cmd)
 	case "skew":
 		core.MessageChannel <- agentAPI.Skew(agent, cmd)
 	case "sleep":
 		core.MessageChannel <- agentAPI.Sleep(agent, cmd)
+	case "socks":
+		core.MessageChannel <- agentAPI.Socks(agent, cmd)
+	case "ssh":
+		core.MessageChannel <- agentAPI.SSH(agent, cmd)
 	case "status":
 		status, message := agentAPI.GetAgentStatus(agent)
 		if message.Error {
@@ -234,8 +240,6 @@ func handlerAgent(cmd []string) {
 			c = append(c, cmd[1:]...)
 		}
 		core.MessageChannel <- agentAPI.Token(agent, c)
-	case "ssh":
-		core.MessageChannel <- agentAPI.SSH(agent, cmd)
 	case "token":
 		core.MessageChannel <- agentAPI.Token(agent, cmd)
 	case "touch", "timestomp":
@@ -305,11 +309,16 @@ func completerAgent() *readline.PrefixCompleter {
 		readline.PcItem("quit"),
 		readline.PcItem("rm"),
 		readline.PcItem("run"),
-		readline.PcItem("sessions"),
 		readline.PcItem("sdelete"),
+		readline.PcItem("sessions"),
 		readline.PcItem("shell"),
 		readline.PcItem("skew"),
 		readline.PcItem("sleep"),
+		readline.PcItem("socks",
+			readline.PcItem("list"),
+			readline.PcItem("start"),
+			readline.PcItem("stop"),
+		),
 		readline.PcItem("ssh"),
 		readline.PcItem("status"),
 		readline.PcItem("touch"),
@@ -328,6 +337,11 @@ func completerAgent() *readline.PrefixCompleter {
 		readline.PcItem("invoke-assembly"),
 		readline.PcItem("list-assemblies"),
 		readline.PcItem("load-assembly"),
+		readline.PcItem("memory",
+			readline.PcItem("read"),
+			readline.PcItem("patch"),
+			readline.PcItem("write"),
+		),
 		readline.PcItem("netstat"),
 		readline.PcItem("pipes"),
 		readline.PcItem("ps"),
@@ -398,6 +412,7 @@ func helpAgent() {
 		{"shell", "Execute a command on the agent using the host's default shell", "shell ping -c 3 8.8.8.8"},
 		{"skew", "Set the amount of skew, or jitter, that an agent will use to checkin", "skew <number>"},
 		{"sleep", "Set the agent's sleep interval using Go time format", "sleep 30s"},
+		{"socks", "Start a SOCKS5 listener", "[list, start, stop] <interface:port> <agentID>"},
 		{"ssh", "Execute command on remote host over SSH (non-interactive", "ssh <user> <pass> <host:port> <program> [<args>]"},
 		{"status", "Print the current status of the agent", ""},
 		{"touch", "Match destination file's timestamps with source file (alias timestomp)", "touch <source> <destination>"},
@@ -412,6 +427,7 @@ func helpAgent() {
 		{"invoke-assembly", "Invoke, or execute, a .NET assembly that was previously loaded into the agent's process", "<assembly name> <assembly args>"},
 		{"load-assembly", "Load a .NET assembly into the agent's process", "<assembly path> [<assembly name>]"},
 		{"list-assemblies", "List the .NET assemblies that are loaded into the agent's process", ""},
+		{"memory", "Read or write memory for a provided module and function", "memory <patch,read,write> <module> <procedure> [length, bytes]"},
 		{"netstat", "display network connections", "netstat [-p tcp|udp]"},
 		{"pipes", "Enumerate all named pipes", ""},
 		{"ps", "Get a list of running processes", ""},
