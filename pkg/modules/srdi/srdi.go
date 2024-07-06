@@ -1,7 +1,7 @@
 /*
 Merlin is a post-exploitation command and control framework.
 This file is part of Merlin.
-Copyright (C) 2022  Russel Van Tuyl
+Copyright (C) 2023  Russel Van Tuyl
 
 Merlin is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -27,14 +27,13 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"fmt"
-	"io/ioutil"
 	"math"
 	"os"
 	"strconv"
 	"strings"
 
 	// Merlin
-	"github.com/Ne0nd0g/merlin/pkg/modules/shellcode"
+	"github.com/Ne0nd0g/merlin/v2/pkg/modules/shellcode"
 )
 
 // Parse is the initial entry point for all extended modules. All validation checks and processing will be performed here
@@ -116,7 +115,7 @@ func Parse(options map[string]string) ([]string, error) {
 func dllToReflectiveShellcode(dllPath string, functionName string, clearHeader bool, userDataStr string) ([]byte, error) {
 
 	// TODO make sure file exists
-	dllBytes, err := ioutil.ReadFile(dllPath) // #nosec G304 Intended functionality to allow users to specify arbitrary file
+	dllBytes, err := os.ReadFile(dllPath) // #nosec G304 Intended functionality to allow users to specify arbitrary file
 	if err != nil {
 		return nil, err
 	}

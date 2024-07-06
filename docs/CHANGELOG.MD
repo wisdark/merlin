@@ -4,7 +4,135 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-# 1.5.0 - 2022-07-20
+## 2.1.3 - 2024-04-23
+
+### Changed
+
+- Upgraded golang.org/x/crypto v0.21.0 => v0.22.0
+- Upgraded golang.org/x/sys v0.18.0 => v0.19.0
+- Upgraded golang.org/x/sync v0.6.0 => v0.7.0
+- Upgraded google.golang.org/grpc v1.62.1 => v1.63.2
+- Upgraded golang.org/x/mod v0.16.0 => v0.17.0
+- Upgraded golang.org/x/tools v0.19.0 => v0.20.0
+- Upgraded golang.org/x/exp v0.0.0-20240318143956-a85f2c67cd81 => v0.0.0-20240416160154-fe59bbe5cc7f
+- Upgraded github.com/google/pprof v0.0.0-20240320155624-b11c3daa6f07 => v0.0.0-20240422182052-72c8669ad3e7
+- Upgraded github.com/onsi/ginkgo/v2 v2.17.0 => v2.17.1
+
+### Security
+
+- [CVE-2023-45288](https://nvd.nist.gov/vuln/detail/CVE-2023-45288) - Upgraded `golang.org/x/net` to v0.24.0 to address CVE-2023-45288
+
+## 2.1.2 - 2024-03-25
+
+### Fixed
+
+- SOCKS listener was not properly handling data and connection status
+  - Increased SOCKS job in/out channel size from 100 to 1,000
+  - Fixed a bug where multiple SOCKS go routines were created instead of one
+  - Updated `readSOCKSClient()` function to close the connection on any connection read error
+  - Updated `processMessage()` to drop SOCKS jobs when the connection was already closed
+  - Added `NewInfoWithID()` factory for SOCKS jobs information structures that keep the same Job ID for the connection lifetime
+
+### Changed
+
+- Upgraded the following libraries to their latest version
+  - upgraded github.com/google/uuid v1.5.0 => v1.6.0
+  - upgraded golang.org/x/net v0.21.0 => v0.22.0
+  - upgraded golang.org/x/sync v0.5.0 => v0.6.0
+  - upgraded google.golang.org/grpc v1.60.1 => v1.62.1
+  - upgraded github.com/quic-go/quic-go v0.40.1 => v0.42.0
+
+### Security
+
+- Upgraded go-jose/v3 to v3.0.3 to address CVE-2024-28180
+- Upgraded the protobuf library to v1.33.0 to address CVE-2024-24786
+
+## 2.1.1 - 2024-01-04
+
+### Added
+
+- Added Qodana baseline file
+
+### Changed
+
+- Upgraded packages
+ - `github.com/Ne0nd0g/merlin-message` to v1.3.0
+ - `github.com/quic-go/quic-go` to v0.40.1
+ - `google.golang.org/grpc` to v1.60.0
+- Modified Dockerfile
+  - Upgraded `ne0nd0g/merlin-base` v1.5.0 in Dockerfile
+  - Changed `ENTRYPOINT` to execute a compiled binary instead of `go run` 
+- Removed `GOGARBLE` environment variable from Makefile
+
+## 2.1.0 - 2023-12-14
+
+### Fixed
+
+- [Issue 148](https://github.com/Ne0nd0g/merlin/issues/148) - Validate & encode gRPC messages to UTF-8
+
+## 2.0.0 - 2023-11-05
+
+### Added
+
+- Peer-to-Peer Agent communications
+- gRPC Server for [Merlin CLI](https://github.com/Ne0nd0g/merlin-cli)
+  - Default interface/port is `127.0.0.1:50051` and default password is `merlin`
+  - `-addr` the address to listen for gRPC connections from the Merlin CLI
+  - `-password` the password for CLI RPC clients to connect to the Merlin server
+  - `-secure` require client TLS certificate verification
+  - `-tlsCA` TLS Certificate Authority file path to verify client certificates
+  - `-tlsCert` TLS certificate file path for the Merlin server
+  - `-tlsKey` TLS private key file path for the Merlin server
+- Structured logging in JSON format to STDOUT using [log/slog](https://pkg.go.dev/log/slog) package
+  - `-debug` enable debug output
+  - `-extra` enable extra debug output (e.g., HTTP requests/responses)
+  - `-trace` enable trace output to see stepping through functions
+- New SMB/UDP/TCP listeners
+  - Used to configure how the listener process Agent traffic
+  - Listeners DO NOT bind to interfaces/ports on the Merlin server, used for Agent configuration/generation ONLY
+- Delegate message types and functions for processing them
+- Configurable listener authentication methods for Agent communications: OPAQUE & none
+- Configurable listener transforms for Agent communications: aes, base64-byte, base64-string, hex-byte, hex-string, gob-base, gob-string, jwe, rc4, and xor
+  - The last transform in the list **MUST** be `gob-base`
+- GitHub Actions for building and testing the Merlin Agent
+
+### Changed
+
+- Refactored _some_ areas to align with DDD and SOLID to alleviate circular dependencies implementing peer-to-peer comms
+  - Implemented base "entity" structures and "aggregates"
+  - Implemented the "Repository" pattern for Agents, Delegates, Groups, Listeners, Servers
+  - Implemented the "Services" patter for interacting with Agents, Listeners, & Base messages
+- Configurable JWT key value for HTTP listeners
+- Upgraded [quic-go](https://github.com/quic-go/quic-go) to v0.40.0
+- The Minimum supported Go version is now 1.21
+- Listeners are now handled by a UUID and no longer by a name as a string
+- Moved the `build` string out of `main.go` and into `pkg/merlin.go`
+- Removed PWNBoard from `main.go`
+- Removed wiki documentation from `docs` to a new repository at https://github.com/Ne0nd0g/merlin-documentation
+- Replaced `github.com/satori/go.uuid` with `github.com/google/uuid`
+- Replaced `github.com/square/go-jose` with `github.com/go-jose/go-jose`
+- Replaced `github.com/Ne0nd0g/merlin/pkg/messages` with `github.com/Ne0nd0g/merlin-message`
+  - Removes the need to depend on or import the Merlin Server package
+
+### Removed
+
+- Removed the interactive CLI menu to [Merlin CLI](https://github.com/Ne0nd0g/merlin-cli)
+  - Uses gRPC to communicate with the Merlin server
+
+## 1.5.1 - 2023-03-08
+
+### Added
+
+- Documentation for proxying Agent DLL provided by @HuskyHacks in [PR 136](https://github.com/Ne0nd0g/merlin/pull/136)
+
+### Security
+
+- [PR 137](https://github.com/Ne0nd0g/merlin/pull/137) - Bump golang.org/x/text from 0.3.7 to 0.3.8 by dependabot
+- [PR 138](https://github.com/Ne0nd0g/merlin/pull/138) - Bump golang.org/x/net from 0.0.0-20220708220712-1185a9018129 to 0.7.0 by dependabot
+- [PR 139](https://github.com/Ne0nd0g/merlin/pull/139) - Bump golang.org/x/crypto from 0.0.0-20200709230013-948cd5f35899 to 0.1.0 by dependabot
+- [PR 140](https://github.com/Ne0nd0g/merlin/pull/140) - Bump golang.org/x/net from 0.1.0 to 0.7.0 by dependabot
+
+## 1.5.0 - 2022-07-20
 
 ### Added
 
@@ -19,26 +147,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reduced the default PBES2 count for payload JWE encryption from 500,000 to 3,000
   - https://datatracker.ietf.org/doc/html/rfc7518#section-4.8.1.2
 
-# 1.4.3 - 2022-07-09
+## 1.4.3 - 2022-07-09
 
 ### Fixed
 
 - [Issue 129](https://github.com/Ne0nd0g/merlin/issues/129) - Added references to Docker image source
 
-# 1.4.2 - 2022-04-14
+## 1.4.2 - 2022-04-14
 
 ### Added
 
 - Server shows error when BOTH the agent and the server were not obfuscated with the SAME seed
   - [merlin-agent/15](https://github.com/Ne0nd0g/merlin-agent/issues/15)
 
-# 1.4.1 - 2022-04-12
+## 1.4.1 - 2022-04-12
 
 ### Fixed
 
 - [Issue 126](https://github.com/Ne0nd0g/merlin/issues/126) - Upgraded [quic-go](https://github.com/lucas-clemente/quic-go/) to v0.27.0 for Go 1.18 support
 
-# 1.4.0 - 2022-04-02
+## 1.4.0 - 2022-04-02
 
 ### Added
 
@@ -47,7 +175,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - The `write` command will just write the specified bytes without reading them first
   - The `patch` command will find a specified function, read the existing bytes, and then overwrite it with the provided bytes
 
-# 1.3.1 - 2022-03-22
+## 1.3.1 - 2022-03-22
 
 ### Added
 
